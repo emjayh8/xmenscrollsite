@@ -1,0 +1,152 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  min-height: 100%;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  overflow-x: hidden;
+  background-color: #ffffff;
+}
+
+.App {
+  position: relative;
+  min-height: 100vh;
+  transition: background-color 0.3s ease;
+  background-color: #ffffff;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: #333;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.hero-section h1 {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  color: #333;
+}
+
+.hero-section p {
+  font-size: 1.5rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  color: #333;
+}
+
+.section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: white;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.section h2 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  color: #ffffff;
+}
+
+.section p {
+  font-size: 1.2rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  max-width: 600px;
+  margin-bottom: 2rem;
+}
+
+/* Cyclops Section Specific Styles */
+.cyclops-section {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.cyclops-asset {
+  position: fixed;
+  top: 50vh;
+  left: 50vw;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  width: 80vw;
+  height: auto;
+  max-width: 80vw;
+  max-height: 80vh;
+  z-index: 1000;
+}
+
+.cyclops-visor {
+  z-index: 1001;
+}
+
+.cyclops-ray {
+  z-index: 1002;
+}
+
+.cyclops-star {
+  z-index: 1003;
+}
+
+.cyclops-assets {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .hero-section h1 {
+    font-size: 2.5rem;
+  }
+  
+  .hero-section p {
+    font-size: 1.2rem;
+  }
+  
+  .section h2 {
+    font-size: 2rem;
+  }
+  
+  .section p {
+    font-size: 1rem;
+  }
+  
+  .cyclops-assets {
+    gap: 1rem;
+  }
+  
+  .cyclops-asset {
+    max-width: 150px;
+    max-height: 150px;
+  }
+}
