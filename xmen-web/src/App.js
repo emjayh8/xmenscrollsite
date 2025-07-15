@@ -23,6 +23,8 @@ function App() {
   const [colossusSilverFaceTriggered, setColossusSilverFaceTriggered] = useState(false);
   const [colossusStarTriggered, setColossusStarTriggered] = useState(false);
   const [colossusPeachFaceStarted, setColossusPeachFaceStarted] = useState(false);
+  // Track which sections have been visited to prevent re-triggering
+  const [visitedSections, setVisitedSections] = useState(new Set());
   const [activeSection, setActiveSection] = useState(0);
   const [navActiveSection, setNavActiveSection] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -35,43 +37,68 @@ function App() {
     setActiveSection(sectionIndex);
     setNavActiveSection(sectionIndex);
     
-    // Reset animation states for the target section only
-    if (sectionIndex === 0) { // Cyclops
-      setCyclopsImagesTriggered(false);
-      setTimeout(() => setCyclopsImagesTriggered(true), 100);
-    } else if (sectionIndex === 1) { // Wolverine
-      setWolverineImagesTriggered(false);
-      setWolverineHighlightsTriggered(false);
-      setWolverineStarTriggered(false);
-      setWolverineClawsStarted(false);
-      setTimeout(() => setWolverineImagesTriggered(true), 100);
-    } else if (sectionIndex === 2) { // Storm
-      setStormImagesTriggered(false);
-      setStormStarTriggered(false);
-      setStormLightningStarted(false);
-      setTimeout(() => setStormImagesTriggered(true), 100);
-    } else if (sectionIndex === 3) { // Psylocke
-      setPsylockeImagesTriggered(false);
-      setPsylockeSwordTriggered(false);
-      setPsylockeStarTriggered(false);
-      setPsylockeSwordStarted(false);
-      setTimeout(() => setPsylockeImagesTriggered(true), 100);
-    } else if (sectionIndex === 4) { // Gambit
-      setGambitWhiteCardTriggered(false);
-      setGambitOrangeCardTriggered(false);
-      setGambitWhiteCardStarted(false);
-      setTimeout(() => setGambitWhiteCardTriggered(true), 100);
-    } else if (sectionIndex === 5) { // Colossus
-      setColossusPeachFaceTriggered(false);
-      setColossusSilverFaceTriggered(false);
-      setColossusStarTriggered(false);
-      setColossusPeachFaceStarted(false);
-      setTimeout(() => setColossusPeachFaceTriggered(true), 100);
+    // Only trigger animations if section hasn't been visited before
+    if (!visitedSections.has(sectionIndex)) {
+      setVisitedSections(prev => new Set([...prev, sectionIndex]));
+      
+      if (sectionIndex === 0) { // Cyclops
+        setCyclopsImagesTriggered(true);
+      } else if (sectionIndex === 1) { // Wolverine
+        setWolverineImagesTriggered(true);
+        setWolverineClawsStarted(true);
+        // Trigger highlights and star after claws animation finishes (1.2s duration)
+        setTimeout(() => {
+          setWolverineHighlightsTriggered(true);
+          setWolverineStarTriggered(true);
+        }, 1200);
+      } else if (sectionIndex === 2) { // Storm
+        setStormImagesTriggered(true);
+        setStormLightningStarted(true);
+        // Trigger star after lightning animation finishes (1.2s duration)
+        setTimeout(() => {
+          setStormStarTriggered(true);
+        }, 1200);
+      } else if (sectionIndex === 3) { // Psylocke
+        setPsylockeImagesTriggered(true);
+        setPsylockeSwordTriggered(true);
+        setPsylockeSwordStarted(true);
+        // Trigger star after sword animation finishes (1.2s duration)
+        setTimeout(() => {
+          setPsylockeStarTriggered(true);
+        }, 1200);
+      } else if (sectionIndex === 4) { // Gambit
+        setGambitWhiteCardTriggered(true);
+        setGambitWhiteCardStarted(true);
+        // Trigger orange card after white card animation finishes (1.5s duration)
+        setTimeout(() => {
+          setGambitOrangeCardTriggered(true);
+        }, 1500);
+      } else if (sectionIndex === 5) { // Colossus
+        setColossusPeachFaceTriggered(true);
+        setColossusPeachFaceStarted(true);
+        // Trigger silver face after peach face animation finishes (1.2s duration)
+        setTimeout(() => {
+          setColossusSilverFaceTriggered(true);
+        }, 1200);
+        // Trigger star when silver face is at 50% (0.6s after silver face starts)
+        setTimeout(() => {
+          setColossusStarTriggered(true);
+        }, 1800);
+      }
     }
     
     const sections = document.querySelectorAll('section');
     if (sections[sectionIndex]) {
-      sections[sectionIndex].scrollIntoView({ behavior: 'smooth' });
+      const section = sections[sectionIndex];
+      const windowHeight = window.innerHeight;
+      const sectionTop = section.offsetTop;
+      const sectionHeight = section.offsetHeight;
+      const targetScrollTop = sectionTop + (sectionHeight / 2) - (windowHeight / 2);
+      
+      window.scrollTo({
+        top: targetScrollTop,
+        behavior: 'smooth'
+      });
     }
     
     // Reset navigation flag after scroll completes
@@ -454,8 +481,8 @@ function App() {
         clearTimeout(navScrollTimeout);
       }
 
-      // Only update active section if not navigating or resizing
-      if (!isNavigating && !isResizing) {
+      // Always update active section based on scroll position (unless navigating)
+      if (!isNavigating) {
         // Calculate which section is currently in view for immediate color updates
         let foundActive = false;
         
@@ -463,13 +490,15 @@ function App() {
           const rect = section.getBoundingClientRect();
           // Check if section is more than 50% in view
           if (rect.top <= windowHeight * 0.5 && rect.bottom >= windowHeight * 0.5) {
-            setActiveSection(index);
+            if (activeSection !== index) {
+              setActiveSection(index);
+            }
             foundActive = true;
           }
         });
 
         // If no section is found, default to first section (white)
-        if (!foundActive) {
+        if (!foundActive && activeSection !== 0) {
           setActiveSection(0);
         }
       }
@@ -477,115 +506,108 @@ function App() {
       // Always update colors based on current active section
       const colors = ['#ffffff', '#0085ba', '#17609c', '#2a273d', '#bf1f2f', '#fff203'];
       const newColor = colors[activeSection] || colors[0];
-      setCurrentColor(newColor);
-
-
-
-      // Check if Cyclops section is in view for image animations
-      const cyclopsSection = document.querySelector('.cyclops-section');
-      if (cyclopsSection) {
-        const rect = cyclopsSection.getBoundingClientRect();
-        // Show images when section is 30% in view
-        if (rect.top <= windowHeight * 0.7 && rect.bottom >= windowHeight * 0.3) {
-          setCyclopsImagesTriggered(true);
-        }
+      if (currentColor !== newColor) {
+        setCurrentColor(newColor);
       }
 
-      // Check if Wolverine section is in view for image animations
-      const wolverineSection = document.querySelector('.wolverine-section');
-      if (wolverineSection) {
-        const rect = wolverineSection.getBoundingClientRect();
-        // Show images when section is much further in view (80% instead of 60%)
-        if (rect.top <= windowHeight * 0.2 && rect.bottom >= windowHeight * 0.8) {
-          setWolverineImagesTriggered(true);
-          // Start the claws animation
-          if (!wolverineClawsStarted) {
+
+
+      // Only trigger animations on scroll if not navigating and section hasn't been visited
+      if (!isNavigating) {
+        // Check if Cyclops section is in view for image animations
+        const cyclopsSection = document.querySelector('.cyclops-section');
+        if (cyclopsSection && !visitedSections.has(0)) {
+          const rect = cyclopsSection.getBoundingClientRect();
+          // Show images when section is 50% in view (more mobile-friendly)
+          if (rect.top <= windowHeight * 0.5 && rect.bottom >= windowHeight * 0.5) {
+            setCyclopsImagesTriggered(true);
+            setVisitedSections(prev => new Set([...prev, 0]));
+          }
+        }
+
+        // Check if Wolverine section is in view for image animations
+        const wolverineSection = document.querySelector('.wolverine-section');
+        if (wolverineSection && !visitedSections.has(1)) {
+          const rect = wolverineSection.getBoundingClientRect();
+          // Show images when section is 50% in view (more mobile-friendly)
+          if (rect.top <= windowHeight * 0.5 && rect.bottom >= windowHeight * 0.5) {
+            setWolverineImagesTriggered(true);
             setWolverineClawsStarted(true);
-            // Trigger highlights and star after claws animation finishes (1.6s duration)
+            setVisitedSections(prev => new Set([...prev, 1]));
+            // Trigger highlights and star after claws animation finishes (1.2s duration)
             setTimeout(() => {
               setWolverineHighlightsTriggered(true);
               setWolverineStarTriggered(true);
-            }, 1600);
+            }, 1200);
           }
         }
-      }
 
-      // Check if Storm section is in view for image animations
-      const stormSection = document.querySelector('.storm-section');
-      if (stormSection) {
-        const rect = stormSection.getBoundingClientRect();
-        // Show images when section is 30% in view
-        if (rect.top <= windowHeight * 0.7 && rect.bottom >= windowHeight * 0.3) {
-          setStormImagesTriggered(true);
-          // Start the lightning animation
-          if (!stormLightningStarted) {
+        // Check if Storm section is in view for image animations
+        const stormSection = document.querySelector('.storm-section');
+        if (stormSection && !visitedSections.has(2)) {
+          const rect = stormSection.getBoundingClientRect();
+          // Show images when section is 50% in view (more mobile-friendly)
+          if (rect.top <= windowHeight * 0.5 && rect.bottom >= windowHeight * 0.5) {
+            setStormImagesTriggered(true);
             setStormLightningStarted(true);
-            // Trigger star after lightning animation finishes (1.6s duration)
+            setVisitedSections(prev => new Set([...prev, 2]));
+            // Trigger star after lightning animation finishes (1.2s duration)
             setTimeout(() => {
               setStormStarTriggered(true);
-            }, 1600);
+            }, 1200);
           }
         }
-      }
 
-      // Check if Psylocke section is in view for image animations
-      const psylockeSection = document.querySelector('.psylocke-section');
-      if (psylockeSection) {
-        const rect = psylockeSection.getBoundingClientRect();
-        // Show pinklight when section is 30% in view
-        if (rect.top <= windowHeight * 0.7 && rect.bottom >= windowHeight * 0.3) {
-          setPsylockeImagesTriggered(true);
-        }
-        // Trigger sword when section is further in view (e.g. 50% from top and 50% from bottom)
-        if (rect.top <= windowHeight * 0.5 && rect.bottom >= windowHeight * 0.5) {
-          setPsylockeSwordTriggered(true);
-          // Start the sword animation
-          if (!psylockeSwordStarted) {
+        // Check if Psylocke section is in view for image animations
+        const psylockeSection = document.querySelector('.psylocke-section');
+        if (psylockeSection && !visitedSections.has(3)) {
+          const rect = psylockeSection.getBoundingClientRect();
+          // Show pinklight when section is 50% in view (more mobile-friendly)
+          if (rect.top <= windowHeight * 0.5 && rect.bottom >= windowHeight * 0.5) {
+            setPsylockeImagesTriggered(true);
+            setPsylockeSwordTriggered(true);
             setPsylockeSwordStarted(true);
-            // Trigger star after sword animation finishes (1.6s duration)
+            setVisitedSections(prev => new Set([...prev, 3]));
+            // Trigger star after sword animation finishes (1.2s duration)
             setTimeout(() => {
               setPsylockeStarTriggered(true);
-            }, 1600);
+            }, 1200);
           }
         }
-      }
 
-      // Check if Gambit section is in view for image animations
-      const gambitSection = document.querySelector('.gambit-section');
-      if (gambitSection) {
-        const rect = gambitSection.getBoundingClientRect();
-        // Show white card when section is 30% in view
-        if (rect.top <= windowHeight * 0.7 && rect.bottom >= windowHeight * 0.3) {
-          setGambitWhiteCardTriggered(true);
-          // Start the white card animation
-          if (!gambitWhiteCardStarted) {
+        // Check if Gambit section is in view for image animations
+        const gambitSection = document.querySelector('.gambit-section');
+        if (gambitSection && !visitedSections.has(4)) {
+          const rect = gambitSection.getBoundingClientRect();
+          // Show white card when section is 50% in view (more mobile-friendly)
+          if (rect.top <= windowHeight * 0.5 && rect.bottom >= windowHeight * 0.5) {
+            setGambitWhiteCardTriggered(true);
             setGambitWhiteCardStarted(true);
-            // Trigger orange card after white card animation finishes (2.0s duration)
+            setVisitedSections(prev => new Set([...prev, 4]));
+            // Trigger orange card after white card animation finishes (1.5s duration)
             setTimeout(() => {
               setGambitOrangeCardTriggered(true);
-            }, 2000);
+            }, 1500);
           }
         }
-      }
 
-      // Check if Colossus section is in view for image animations
-      const colossusSection = document.querySelector('.colossus-section');
-      if (colossusSection) {
-        const rect = colossusSection.getBoundingClientRect();
-        // Show peach face when section is 30% in view
-        if (rect.top <= windowHeight * 0.7 && rect.bottom >= windowHeight * 0.3) {
-          setColossusPeachFaceTriggered(true);
-          // Start the peach face animation
-          if (!colossusPeachFaceStarted) {
+        // Check if Colossus section is in view for image animations
+        const colossusSection = document.querySelector('.colossus-section');
+        if (colossusSection && !visitedSections.has(5)) {
+          const rect = colossusSection.getBoundingClientRect();
+          // Show peach face when section is 50% in view (more mobile-friendly)
+          if (rect.top <= windowHeight * 0.5 && rect.bottom >= windowHeight * 0.5) {
+            setColossusPeachFaceTriggered(true);
             setColossusPeachFaceStarted(true);
-            // Trigger silver face after peach face animation finishes (1.6s duration)
+            setVisitedSections(prev => new Set([...prev, 5]));
+            // Trigger silver face after peach face animation finishes (1.2s duration)
             setTimeout(() => {
               setColossusSilverFaceTriggered(true);
-            }, 1600);
-            // Trigger star when silver face is at 50% (0.8s after silver face starts)
+            }, 1200);
+            // Trigger star when silver face is at 50% (0.6s after silver face starts)
             setTimeout(() => {
               setColossusStarTriggered(true);
-            }, 2400);
+            }, 1800);
           }
         }
       }
@@ -608,11 +630,19 @@ function App() {
 
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('resize', handleResize);
+    
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleResize);
     };
   }, [colossusPeachFaceStarted, gambitWhiteCardStarted, psylockeSwordStarted, stormLightningStarted, wolverineClawsStarted, activeSection]);
+
+  // Effect to update color immediately when active section changes
+  useEffect(() => {
+    const colors = ['#ffffff', '#0085ba', '#17609c', '#2a273d', '#bf1f2f', '#fff203'];
+    const newColor = colors[activeSection] || colors[0];
+    setCurrentColor(newColor);
+  }, [activeSection]);
 
   // Separate effect to sync navigation with active section after delay
   useEffect(() => {
@@ -629,26 +659,31 @@ function App() {
   // Effect to center the active section in the viewport (only for resize, not navigation)
   useEffect(() => {
     if (isNavigating || isResizing) return;
-    const sections = document.querySelectorAll('section');
-    if (sections[activeSection]) {
-      const section = sections[activeSection];
-      const rect = section.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-      
-      // Calculate the exact scroll position needed to center the section
-      const sectionTop = section.offsetTop;
-      const sectionHeight = section.offsetHeight;
-      const targetScrollTop = sectionTop + (sectionHeight / 2) - (windowHeight / 2);
-      
-      // Only scroll if we're significantly off-center
-      if (Math.abs(window.scrollY - targetScrollTop) > 10) {
-        window.scrollTo({
-          top: targetScrollTop,
-          behavior: 'smooth'
-        });
+    
+    const timer = setTimeout(() => {
+      const sections = document.querySelectorAll('section');
+      if (sections[activeSection]) {
+        const section = sections[activeSection];
+        const windowHeight = window.innerHeight;
+        
+        // Calculate the exact scroll position needed to center the section
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.offsetHeight;
+        const targetScrollTop = sectionTop + (sectionHeight / 2) - (windowHeight / 2);
+        
+        // Only scroll if we're significantly off-center (lower threshold for better responsiveness)
+        const threshold = isMobile ? 30 : 20;
+        if (Math.abs(window.scrollY - targetScrollTop) > threshold) {
+          window.scrollTo({
+            top: targetScrollTop,
+            behavior: 'smooth'
+          });
+        }
       }
-    }
-  }, [activeSection, isNavigating, isResizing]);
+    }, isMobile ? 200 : 150); // Shorter delay for better responsiveness
+    
+    return () => clearTimeout(timer);
+  }, [activeSection, isNavigating, isResizing, isMobile]);
 
   // Effect to set initial color based on scroll position
   useEffect(() => {
@@ -729,7 +764,7 @@ function App() {
           animate={{ 
             clipPath: cyclopsImagesTriggered ? 'inset(0 0 0% 0)' : 'inset(0 0 100% 0)'
           }}
-          transition={{ duration: 1.6, ease: "easeOut" }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
         />
         
         <motion.img 
@@ -792,7 +827,7 @@ function App() {
                 clipPath: wolverineImagesTriggered ? 'inset(0% 0 0 0)' : 'inset(100% 0 0 0)',
                 transform: wolverineImagesTriggered ? 'translateY(0px)' : 'translateY(20px)'
               }}
-              transition={{ duration: 1.6, ease: "easeOut" }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
             />
             
             <motion.img 
@@ -809,7 +844,7 @@ function App() {
               }}
               initial={{ opacity: 0 }}
               animate={{ opacity: wolverineHighlightsTriggered ? 1 : 0 }}
-              transition={{ duration: 1.6 }}
+              transition={{ duration: 1.2 }}
             />
             
             <motion.img 
@@ -866,7 +901,7 @@ function App() {
               animate={{ 
                 clipPath: stormImagesTriggered ? 'inset(0 0 0% 0)' : 'inset(0 0 100% 0)'
               }}
-              transition={{ duration: 1.6, ease: "easeOut" }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
             />
             
             <motion.img 
@@ -922,7 +957,7 @@ function App() {
               }}
               initial={{ opacity: 0 }}
               animate={{ opacity: psylockeImagesTriggered ? 1 : 0 }}
-              transition={{ duration: 1.6 }}
+              transition={{ duration: 1.2 }}
             />
             
             <motion.img 
@@ -948,7 +983,7 @@ function App() {
                 clipPath: psylockeSwordTriggered ? 'inset(0% 0 0 0)' : 'inset(100% 0 0 0)',
                 transform: psylockeSwordTriggered ? 'translate(-50%, -50%) translateY(0px)' : 'translate(-50%, -50%) translateY(20px)'
               }}
-              transition={{ duration: 1.6, ease: "easeOut" }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
             />
             
             <motion.img 
@@ -1016,7 +1051,7 @@ function App() {
                   opacity: gambitWhiteCardTriggered ? 1 : 0,
                   rotate: gambitWhiteCardTriggered ? 360 : 0
                 }}
-                transition={{ duration: 2.0, ease: "easeOut" }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
               />
             </div>
             
@@ -1047,7 +1082,7 @@ function App() {
                 animate={{ 
                   clipPath: gambitOrangeCardTriggered ? 'inset(0 0 0% 0)' : 'inset(0 0 100% 0)'
                 }}
-                transition={{ duration: 1.6, ease: "easeOut" }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
               />
             </div>
           </div>
@@ -1084,7 +1119,7 @@ function App() {
               }}
               initial={{ opacity: 0 }}
               animate={{ opacity: colossusPeachFaceTriggered ? 1 : 0 }}
-              transition={{ duration: 1.6 }}
+              transition={{ duration: 1.2 }}
             />
             
             <motion.img 
@@ -1108,7 +1143,7 @@ function App() {
               animate={{ 
                 clipPath: colossusSilverFaceTriggered ? 'inset(0 0 0% 0)' : 'inset(0 0 100% 0)'
               }}
-              transition={{ duration: 1.6, ease: "easeOut" }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
             />
             
             <motion.img 
