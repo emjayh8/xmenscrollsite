@@ -101,10 +101,10 @@ function App() {
       });
     }
     
-    // Reset navigation flag after scroll completes
+    // Reset navigation flag after scroll completes (shorter timeout for better responsiveness)
     setTimeout(() => {
       setIsNavigating(false);
-    }, 1000);
+    }, 500);
   };
 
   // Check screen size for responsive navigation
@@ -117,6 +117,17 @@ function App() {
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
+
+  // Helper function to determine text color for active buttons
+  const getTextColor = (sectionName, isActive) => {
+    if (!isActive) return '#666';
+    
+    // White text for dark backgrounds
+    if (sectionName === 'Storm' || sectionName === 'Psylocke' || sectionName === 'Gambit') {
+      return '#fff';
+    }
+    return '#000';
+  };
 
   // Horizontal navigation for mobile/tablet
   const HorizontalNav = () => {
@@ -170,12 +181,13 @@ function App() {
         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
         display: 'flex',
         flexDirection: isTiny ? 'column' : isVerySmall ? 'row' : 'column',
+        flexWrap: 'wrap',
         gap: gap,
         justifyContent: 'center',
         alignItems: 'center',
-        width: isTiny ? 'auto' : isVerySmall ? 'auto' : '320px',
+        width: 'auto',
         minWidth: isTiny ? 'auto' : isVerySmall ? 'auto' : '320px',
-        maxWidth: isTiny ? 'auto' : isVerySmall ? '95vw' : '320px'
+        // maxWidth removed for better wrapping
       }}>
         {isTiny ? (
           // 2 columns of 3 for tiny windows (top left corner)
@@ -190,9 +202,10 @@ function App() {
               <button
                 key={section.name}
                 onClick={() => scrollToSection(index)}
+                className={`nav-btn ${navActiveSection === index ? 'nav-btn-hover' : ''}`}
                 style={{
                   backgroundColor: navActiveSection === index ? section.color : 'transparent',
-                  color: navActiveSection === index ? '#000' : '#666',
+                  color: getTextColor(section.name, navActiveSection === index),
                   border: `2px solid ${navActiveSection === index ? section.color : '#ccc'}`,
                   borderRadius: '20px',
                   padding: padding,
@@ -208,18 +221,12 @@ function App() {
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  '--nav-hover-bg': section.color,
+                  '--nav-hover-color': getTextColor(section.name, true)
                 }}
-                onMouseEnter={(e) => {
-                  if (!isMobile) {
-                    e.target.style.transform = 'scale(1.05)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isMobile) {
-                    e.target.style.transform = 'scale(1)';
-                  }
-                }}
+                onMouseEnter={e => e.currentTarget.classList.add('nav-btn-hover')}
+                onMouseLeave={e => e.currentTarget.classList.remove('nav-btn-hover')}
               >
                 {section.name}
               </button>
@@ -238,9 +245,10 @@ function App() {
               <button
                 key={section.name}
                 onClick={() => scrollToSection(index)}
+                className={`nav-btn ${navActiveSection === index ? 'nav-btn-hover' : ''}`}
                 style={{
                   backgroundColor: navActiveSection === index ? section.color : 'transparent',
-                  color: navActiveSection === index ? '#000' : '#666',
+                  color: getTextColor(section.name, navActiveSection === index),
                   border: `2px solid ${navActiveSection === index ? section.color : '#ccc'}`,
                   borderRadius: '20px',
                   padding: padding,
@@ -256,18 +264,12 @@ function App() {
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  '--nav-hover-bg': section.color,
+                  '--nav-hover-color': getTextColor(section.name, true)
                 }}
-                onMouseEnter={(e) => {
-                  if (!isMobile) {
-                    e.target.style.transform = 'scale(1.05)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isMobile) {
-                    e.target.style.transform = 'scale(1)';
-                  }
-                }}
+                onMouseEnter={e => e.currentTarget.classList.add('nav-btn-hover')}
+                onMouseLeave={e => e.currentTarget.classList.remove('nav-btn-hover')}
               >
                 {section.name}
               </button>
@@ -287,9 +289,10 @@ function App() {
                 <button
                   key={section.name}
                   onClick={() => scrollToSection(index)}
+                  className={`nav-btn ${navActiveSection === index ? 'nav-btn-hover' : ''}`}
                   style={{
                     backgroundColor: navActiveSection === index ? section.color : 'transparent',
-                    color: navActiveSection === index ? '#000' : '#666',
+                    color: getTextColor(section.name, navActiveSection === index),
                     border: `2px solid ${navActiveSection === index ? section.color : '#ccc'}`,
                     borderRadius: '20px',
                     padding: padding,
@@ -305,18 +308,12 @@ function App() {
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    flexShrink: 0
+                    flexShrink: 0,
+                    '--nav-hover-bg': section.color,
+                    '--nav-hover-color': getTextColor(section.name, true)
                   }}
-                  onMouseEnter={(e) => {
-                    if (!isMobile) {
-                      e.target.style.transform = 'scale(1.05)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isMobile) {
-                      e.target.style.transform = 'scale(1)';
-                    }
-                  }}
+                  onMouseEnter={e => e.currentTarget.classList.add('nav-btn-hover')}
+                  onMouseLeave={e => e.currentTarget.classList.remove('nav-btn-hover')}
                 >
                   {section.name}
                 </button>
@@ -334,9 +331,10 @@ function App() {
                 <button
                   key={section.name}
                   onClick={() => scrollToSection(index + 3)}
+                  className={`nav-btn ${navActiveSection === (index + 3) ? 'nav-btn-hover' : ''}`}
                   style={{
                     backgroundColor: navActiveSection === (index + 3) ? section.color : 'transparent',
-                    color: navActiveSection === (index + 3) ? '#000' : '#666',
+                    color: getTextColor(section.name, navActiveSection === (index + 3)),
                     border: `2px solid ${navActiveSection === (index + 3) ? section.color : '#ccc'}`,
                     borderRadius: '20px',
                     padding: padding,
@@ -352,18 +350,12 @@ function App() {
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    flexShrink: 0
+                    flexShrink: 0,
+                    '--nav-hover-bg': section.color,
+                    '--nav-hover-color': getTextColor(section.name, true)
                   }}
-                  onMouseEnter={(e) => {
-                    if (!isMobile) {
-                      e.target.style.transform = 'scale(1.05)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isMobile) {
-                      e.target.style.transform = 'scale(1)';
-                    }
-                  }}
+                  onMouseEnter={e => e.currentTarget.classList.add('nav-btn-hover')}
+                  onMouseLeave={e => e.currentTarget.classList.remove('nav-btn-hover')}
                 >
                   {section.name}
                 </button>
@@ -428,15 +420,16 @@ function App() {
         display: 'flex',
         flexDirection: 'column',
         gap: gap,
-        width: sidebarWidth
+        width: sidebarWidth,
       }}>
         {sections.map((section, index) => (
           <button
             key={section.name}
             onClick={() => scrollToSection(index)}
+            className={`nav-btn ${navActiveSection === index ? 'nav-btn-hover' : ''}`}
             style={{
               backgroundColor: navActiveSection === index ? section.color : 'transparent',
-              color: navActiveSection === index ? '#000' : '#666',
+              color: getTextColor(section.name, navActiveSection === index),
               border: `2px solid ${navActiveSection === index ? section.color : '#ccc'}`,
               borderRadius: '20px',
               padding: buttonPadding,
@@ -449,14 +442,13 @@ function App() {
               textAlign: 'center',
               display: 'flex',
               justifyContent: 'center',
-              alignItems: 'center'
+              alignItems: 'center',
+              flexShrink: 0,
+              '--nav-hover-bg': section.color,
+              '--nav-hover-color': getTextColor(section.name, true)
             }}
-            onMouseEnter={(e) => {
-              e.target.style.transform = 'scale(1.05)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.transform = 'scale(1)';
-            }}
+            onMouseEnter={e => e.currentTarget.classList.add('nav-btn-hover')}
+            onMouseLeave={e => e.currentTarget.classList.remove('nav-btn-hover')}
           >
             {section.name}
           </button>
@@ -481,8 +473,8 @@ function App() {
         clearTimeout(navScrollTimeout);
       }
 
-      // Always update active section based on scroll position (unless navigating)
-      if (!isNavigating) {
+      // Always update active section based on scroll position (even when navigating, but with delay)
+      const updateActiveSection = () => {
         // Calculate which section is currently in view for immediate color updates
         let foundActive = false;
         
@@ -501,6 +493,39 @@ function App() {
         if (!foundActive && activeSection !== 0) {
           setActiveSection(0);
         }
+      };
+
+      // Always update immediately, but with a small delay if navigating to prevent conflicts
+      if (isNavigating) {
+        setTimeout(updateActiveSection, 50);
+      } else {
+        updateActiveSection();
+        
+        // On mobile, immediately snap to the closest section to prevent skipping
+        if (isMobile && !isNavigating) {
+          const sections = document.querySelectorAll('section');
+          let closestSection = 0;
+          let closestDistance = Infinity;
+          
+          sections.forEach((section, index) => {
+            const rect = section.getBoundingClientRect();
+            const sectionCenter = rect.top + rect.height / 2;
+            const viewportCenter = windowHeight / 2;
+            const distance = Math.abs(sectionCenter - viewportCenter);
+            
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closestSection = index;
+            }
+          });
+          
+          // If we found a closer section, update active section immediately
+          if (closestSection !== activeSection) {
+            setActiveSection(closestSection);
+          }
+          
+
+        }
       }
 
       // Always update colors based on current active section
@@ -509,6 +534,32 @@ function App() {
       if (currentColor !== newColor) {
         setCurrentColor(newColor);
       }
+
+
+
+      // Additional scroll detection for better responsiveness after navigation
+      if (isNavigating) {
+        setTimeout(() => {
+          const sections = document.querySelectorAll('section');
+          let foundActive = false;
+          
+          sections.forEach((section, index) => {
+            const rect = section.getBoundingClientRect();
+            if (rect.top <= windowHeight * 0.5 && rect.bottom >= windowHeight * 0.5) {
+              if (activeSection !== index) {
+                setActiveSection(index);
+              }
+              foundActive = true;
+            }
+          });
+
+          if (!foundActive && activeSection !== 0) {
+            setActiveSection(0);
+          }
+        }, 200);
+      }
+
+
 
 
 
@@ -656,7 +707,7 @@ function App() {
     return () => clearTimeout(timer);
   }, [activeSection, isNavigating]);
 
-  // Effect to center the active section in the viewport (only for resize, not navigation)
+  // Effect to snap to the active section and prevent skipping sections
   useEffect(() => {
     if (isNavigating || isResizing) return;
     
@@ -671,8 +722,8 @@ function App() {
         const sectionHeight = section.offsetHeight;
         const targetScrollTop = sectionTop + (sectionHeight / 2) - (windowHeight / 2);
         
-        // Only scroll if we're significantly off-center (lower threshold for better responsiveness)
-        const threshold = isMobile ? 30 : 20;
+        // Very gentle centering - only when significantly off-center
+        const threshold = isMobile ? 200 : 50;
         if (Math.abs(window.scrollY - targetScrollTop) > threshold) {
           window.scrollTo({
             top: targetScrollTop,
@@ -680,7 +731,7 @@ function App() {
           });
         }
       }
-    }, isMobile ? 200 : 150); // Shorter delay for better responsiveness
+    }, isMobile ? 50 : 300); // Very fast response on mobile to catch sections immediately
     
     return () => clearTimeout(timer);
   }, [activeSection, isNavigating, isResizing, isMobile]);
