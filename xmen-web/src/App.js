@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import './App.css';
 
 function App() {
-  const [currentColor, setCurrentColor] = useState('#ffffff');
   const [wolverineImagesTriggered, setWolverineImagesTriggered] = useState(false);
   const [wolverineHighlightsTriggered, setWolverineHighlightsTriggered] = useState(false);
   const [wolverineStarTriggered, setWolverineStarTriggered] = useState(false);
@@ -30,23 +29,23 @@ function App() {
   const [isMobile, setIsMobile] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  // Lock section index for color during navigation
+  const [lockedSection, setLockedSection] = useState(null);
 
   // Function to scroll to a specific section
   const scrollToSection = (sectionIndex) => {
     setIsNavigating(true);
-    setActiveSection(sectionIndex);
     setNavActiveSection(sectionIndex);
-    
+    setLockedSection(sectionIndex); // Lock color to target section
+    // No need to set background color state; handled in render
     // Only trigger animations if section hasn't been visited before
     if (!visitedSections.has(sectionIndex)) {
       setVisitedSections(prev => new Set([...prev, sectionIndex]));
-      
       if (sectionIndex === 0) { // Cyclops
         setCyclopsImagesTriggered(true);
       } else if (sectionIndex === 1) { // Wolverine
         setWolverineImagesTriggered(true);
         setWolverineClawsStarted(true);
-        // Trigger highlights and star after claws animation finishes (1.2s duration)
         setTimeout(() => {
           setWolverineHighlightsTriggered(true);
           setWolverineStarTriggered(true);
@@ -54,7 +53,6 @@ function App() {
       } else if (sectionIndex === 2) { // Storm
         setStormImagesTriggered(true);
         setStormLightningStarted(true);
-        // Trigger star after lightning animation finishes (1.2s duration)
         setTimeout(() => {
           setStormStarTriggered(true);
         }, 1200);
@@ -62,31 +60,26 @@ function App() {
         setPsylockeImagesTriggered(true);
         setPsylockeSwordTriggered(true);
         setPsylockeSwordStarted(true);
-        // Trigger star after sword animation finishes (1.2s duration)
         setTimeout(() => {
           setPsylockeStarTriggered(true);
         }, 1200);
       } else if (sectionIndex === 4) { // Gambit
         setGambitWhiteCardTriggered(true);
         setGambitWhiteCardStarted(true);
-        // Trigger orange card after white card animation finishes (1.5s duration)
         setTimeout(() => {
           setGambitOrangeCardTriggered(true);
         }, 1500);
       } else if (sectionIndex === 5) { // Colossus
         setColossusPeachFaceTriggered(true);
         setColossusPeachFaceStarted(true);
-        // Trigger silver face after peach face animation finishes (1.2s duration)
         setTimeout(() => {
           setColossusSilverFaceTriggered(true);
         }, 1200);
-        // Trigger star when silver face is at 50% (0.6s after silver face starts)
         setTimeout(() => {
           setColossusStarTriggered(true);
         }, 1800);
       }
     }
-    
     const sections = document.querySelectorAll('section');
     if (sections[sectionIndex]) {
       const section = sections[sectionIndex];
@@ -94,16 +87,15 @@ function App() {
       const sectionTop = section.offsetTop;
       const sectionHeight = section.offsetHeight;
       const targetScrollTop = sectionTop + (sectionHeight / 2) - (windowHeight / 2);
-      
       window.scrollTo({
         top: targetScrollTop,
         behavior: 'smooth'
       });
     }
-    
-    // Reset navigation flag after scroll completes (shorter timeout for better responsiveness)
     setTimeout(() => {
+      setActiveSection(sectionIndex);
       setIsNavigating(false);
+      setLockedSection(null); // Unlock after navigation
     }, 500);
   };
 
@@ -473,67 +465,38 @@ function App() {
         clearTimeout(navScrollTimeout);
       }
 
-      // Always update active section based on scroll position (even when navigating, but with delay)
-      const updateActiveSection = () => {
-        // Calculate which section is currently in view for immediate color updates
-        let foundActive = false;
-        
-        sections.forEach((section, index) => {
-          const rect = section.getBoundingClientRect();
-          // Check if section is more than 50% in view
-          if (rect.top <= windowHeight * 0.5 && rect.bottom >= windowHeight * 0.5) {
-            if (activeSection !== index) {
-              setActiveSection(index);
-            }
-            foundActive = true;
-          }
-        });
-
-        // If no section is found, default to first section (white)
-        if (!foundActive && activeSection !== 0) {
-          setActiveSection(0);
-        }
-      };
-
-      // Always update immediately, but with a small delay if navigating to prevent conflicts
-      if (isNavigating) {
-        setTimeout(updateActiveSection, 50);
-      } else {
-        updateActiveSection();
-        
-        // On mobile, immediately snap to the closest section to prevent skipping
-        if (isMobile && !isNavigating) {
-          const sections = document.querySelectorAll('section');
-          let closestSection = 0;
-          let closestDistance = Infinity;
+      // Only update activeSection based on scroll if not navigating
+      if (!isNavigating) {
+        // Always update active section based on scroll position (even when navigating, but with delay)
+        const updateActiveSection = () => {
+          // Calculate which section is currently in view for immediate color updates
+          let foundActive = false;
           
           sections.forEach((section, index) => {
             const rect = section.getBoundingClientRect();
-            const sectionCenter = rect.top + rect.height / 2;
-            const viewportCenter = windowHeight / 2;
-            const distance = Math.abs(sectionCenter - viewportCenter);
-            
-            if (distance < closestDistance) {
-              closestDistance = distance;
-              closestSection = index;
+            // Check if section is more than 50% in view
+            if (rect.top <= windowHeight * 0.5 && rect.bottom >= windowHeight * 0.5) {
+              if (activeSection !== index) {
+                setActiveSection(index);
+              }
+              foundActive = true;
             }
           });
-          
-          // If we found a closer section, update active section immediately
-          if (closestSection !== activeSection) {
-            setActiveSection(closestSection);
-          }
-          
 
-        }
+          // If no section is found, default to first section (white)
+          if (!foundActive && activeSection !== 0) {
+            setActiveSection(0);
+          }
+        };
+        updateActiveSection();
       }
 
       // Always update colors based on current active section
-      const colors = ['#ffffff', '#0085ba', '#17609c', '#2a273d', '#bf1f2f', '#fff203'];
-      const newColor = colors[activeSection] || colors[0];
-      if (currentColor !== newColor) {
-        setCurrentColor(newColor);
-      }
+      // const colors = ['#ffffff', '#0085ba', '#17609c', '#2a273d', '#bf1f2f', '#fff203'];
+      // const newColor = colors[activeSection] || colors[0];
+      // if (currentColor !== newColor) {
+      //   setCurrentColor(newColor);
+      // }
 
 
 
@@ -547,14 +510,16 @@ function App() {
             const rect = section.getBoundingClientRect();
             if (rect.top <= windowHeight * 0.5 && rect.bottom >= windowHeight * 0.5) {
               if (activeSection !== index) {
-                setActiveSection(index);
+                // Do not update activeSection during navigation
+                // setActiveSection(index);
               }
               foundActive = true;
             }
           });
 
           if (!foundActive && activeSection !== 0) {
-            setActiveSection(0);
+            // Do not update activeSection during navigation
+            // setActiveSection(0);
           }
         }, 200);
       }
@@ -665,7 +630,7 @@ function App() {
     };
 
     // Set initial color to white
-    setCurrentColor('#ffffff');
+    // setCurrentColor('#ffffff');
     
     // Trigger initial scroll to set correct color
     handleScroll();
@@ -688,22 +653,18 @@ function App() {
     };
   }, [colossusPeachFaceStarted, gambitWhiteCardStarted, psylockeSwordStarted, stormLightningStarted, wolverineClawsStarted, activeSection]);
 
-  // Effect to update color immediately when active section changes
-  useEffect(() => {
-    const colors = ['#ffffff', '#0085ba', '#17609c', '#2a273d', '#bf1f2f', '#fff203'];
-    const newColor = colors[activeSection] || colors[0];
-    setCurrentColor(newColor);
-  }, [activeSection]);
+  // Compute background color for App container
+  const colors = ['#ffffff', '#0085ba', '#17609c', '#2a273d', '#bf1f2f', '#fff203'];
+  const bgColor = lockedSection !== null ? colors[lockedSection] : colors[activeSection];
 
   // Separate effect to sync navigation with active section after delay
   useEffect(() => {
     // Skip nav updates if we're navigating
     if (isNavigating) return;
-    
+    // Only update navActiveSection if not navigating
     const timer = setTimeout(() => {
       setNavActiveSection(activeSection);
     }, 300);
-    
     return () => clearTimeout(timer);
   }, [activeSection, isNavigating]);
 
@@ -748,19 +709,18 @@ function App() {
       const rect = section.getBoundingClientRect();
       if (rect.top <= windowHeight * 0.5 && rect.bottom >= windowHeight * 0.5) {
         setActiveSection(index);
-        setCurrentColor(colors[index]);
-        foundActive = true;
+        // setCurrentColor(colors[index]); // Removed
       }
     });
 
     if (!foundActive) {
       setActiveSection(0);
-      setCurrentColor(colors[0]);
+      // setCurrentColor(colors[0]); // Removed
     }
   }, []); // Run only on mount
 
   return (
-    <div className="App" style={{ backgroundColor: currentColor }}>
+    <div className="App" style={{ backgroundColor: bgColor }}>
       {/* Cyclops Assets - Outside section for proper positioning */}
       <div style={{
         position: 'absolute',
