@@ -208,3 +208,6 @@ npm run build
 **Made with ❤️ and ⚡ by Emjay**
 
 *"To me, my X-Men!" - Professor Charles Xavier*
+
+License
+MIT License
