@@ -1,4 +1,4 @@
-# X-Men Scroll Site 🦸‍♂️
+# X-Men Scroll Site
 
 An interactive, animated web experience featuring the iconic X-Men characters with smooth scroll-triggered animations and dynamic color transitions.
 
